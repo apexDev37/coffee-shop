@@ -17,7 +17,7 @@ CORS(app)
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this funciton will add one
 '''
-db_drop_and_create_all()
+# db_drop_and_create_all()
 
 # ROUTES
 '''
@@ -81,23 +81,10 @@ db_drop_and_create_all()
 '''
 
 
-# Error Handling
-'''
-Example error handling for unprocessable entity
-'''
-
-
-@app.errorhandler(422)
-def unprocessable(error):
-    return jsonify({
-        "success": False,
-        "error": 422,
-        "message": "unprocessable"
-    }), 422
-
+# -----------------------------Error Handling----------------------------- #
 
 '''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
+@DONE implement error handlers using the @app.errorhandler(error) decorator
     each error handler should return (with approprate messages):
              jsonify({
                     "success": False,
@@ -107,13 +94,85 @@ def unprocessable(error):
 
 '''
 
+
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        'success': False,
+        'error': 400,
+        'message': 'bad request'
+    }), 400
+
+
+@app.errorhandler(405)
+def methhod_not_allowed(error):
+    return jsonify({
+        'success': False,
+        'error': 405,
+        'message': 'method not allowed'
+    }), 405
+
+
+@app.errorhandler(422)
+def unporcessable(error):
+    return jsonify({
+        'success': False,
+        'error': 422,
+        'message': 'unprocessable entity'
+    }), 422
+
+
+@app.errorhandler(500)
+def server_error(error):
+    return jsonify({
+        'success': False,
+        'error': 500,
+        'message': 'internal server error'
+    }), 500
+
+
 '''
-@TODO implement error handler for 404
+@DONE implement error handler for 404
     error handler should conform to general task above
 '''
 
 
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        'success': False,
+        'error': 404,
+        'message': 'requested resource not found'
+    }), 404
+
+
 '''
-@TODO implement error handler for AuthError
+@DONE implement error handler for AuthError
     error handler should conform to general task above
 '''
+
+
+@app.errorhandler(AuthError)
+def auth_error(error):
+    # Determine error code (401, 403)
+    status_code = error.status_code
+
+    # Handle response
+    return (get_401_error_response(error) if status_code == 401
+            else get_403_error_response(error))
+
+
+def get_401_error_response(error):
+    return jsonify({
+        'success': False,
+        'error': 401,
+        'message': 'unauthorized request',
+    }), 401
+
+
+def get_403_error_response(error):
+    return jsonify({
+        'success': False,
+        'error': 403,
+        'message': 'forbidden request',
+    }), 403
