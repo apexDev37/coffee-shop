@@ -1,11 +1,18 @@
+from crypt import methods
 import os
+import sys
 from flask import Flask, request, jsonify, abort
 from sqlalchemy import exc
 import json
 from flask_cors import CORS
 
-from .database.models import db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
+from .database.models import (
+    db,
+    db_drop_and_create_all,
+    Drink,
+    setup_db
+)
 
 app = Flask(__name__)
 setup_db(app)
@@ -19,7 +26,11 @@ CORS(app)
 '''
 # db_drop_and_create_all()
 
-# ROUTES
+
+# -----------------------------API Endpoints----------------------------- #
+
+BASE_URL = '/api/v1'
+
 '''
 @TODO implement endpoint
     GET /drinks
@@ -29,6 +40,24 @@ CORS(app)
         where drinks is the list of drinks or appropriate
         status code indicating reason for failure
 '''
+
+
+@app.route(f'{BASE_URL}/drinks', methods=['GET'])
+def retrieve_all_drinks():
+    # Handle data
+    try:
+        drinks = db.session.query(Drink).all()
+        formatted_drinks = [drink.short() for drink in drinks]
+    except BaseException:
+        print(sys.exc_info())
+        abort(500)
+
+    # Handle response
+    return jsonify({
+        'success': True,
+        'status_code': 200,
+        'drinks': formatted_drinks
+    })
 
 
 '''
