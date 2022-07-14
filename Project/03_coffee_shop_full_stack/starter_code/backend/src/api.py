@@ -19,7 +19,7 @@ setup_db(app)
 CORS(app)
 
 '''
-@TODO uncomment the following line to initialize the datbase
+@DONE: uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this funciton will add one
@@ -32,7 +32,7 @@ CORS(app)
 BASE_URL = '/api/v1'
 
 '''
-@TODO implement endpoint
+@DONE: implement endpoint
     GET /drinks
         it should be a public endpoint
         it should contain only the drink.short() data representation
@@ -61,7 +61,7 @@ def retrieve_all_drinks():
 
 
 '''
-@TODO implement endpoint
+@DONE: implement endpoint
     GET /drinks-detail
         it should require the 'get:drinks-detail' permission
         it should contain the drink.long() data representation
@@ -69,6 +69,25 @@ def retrieve_all_drinks():
         where drinks is the list of drinks or appropriate
         status code indicating reason for failure
 '''
+
+
+@app.route(f'{BASE_URL}/drinks-detail', methods=['GET'])
+@requires_auth('get:drinks-detail')
+def retrieve_drinks_detail():
+    # Handle data
+    try:
+        drinks = db.session.query(Drink).all()
+        formatted_drinks = [drink.long() for drink in drinks]
+    except BaseException:
+        print(sys.exc_info())
+        abort(500)
+    
+    # Handle response
+    return jsonify({
+        'success': True,
+        'status_code': 200,
+        'drinks': formatted_drinks
+    })
 
 
 '''
@@ -113,7 +132,7 @@ def retrieve_all_drinks():
 # -----------------------------Error Handling----------------------------- #
 
 '''
-@DONE implement error handlers using the @app.errorhandler(error) decorator
+@DONE: implement error handlers using the @app.errorhandler(error) decorator
     each error handler should return (with approprate messages):
              jsonify({
                     "success": False,
@@ -161,7 +180,7 @@ def server_error(error):
 
 
 '''
-@DONE implement error handler for 404
+@DONE: implement error handler for 404
     error handler should conform to general task above
 '''
 
@@ -176,7 +195,7 @@ def not_found(error):
 
 
 '''
-@DONE implement error handler for AuthError
+@DONE: implement error handler for AuthError
     error handler should conform to general task above
 '''
 
