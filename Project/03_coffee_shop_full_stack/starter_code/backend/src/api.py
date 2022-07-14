@@ -105,7 +105,7 @@ def retrieve_drinks_detail():
 
 @app.route(f'{BASE_URL}/drinks', methods=['POST'])
 @requires_auth('post:drinks')
-def retrieve_drinks_detail():
+def add_new_drink():
     # Handle post data
     body = request.get_json()
     drink_title = body.get('title', None)
@@ -135,7 +135,7 @@ def retrieve_drinks_detail():
 
 
 '''
-@TODO implement endpoint
+@DONE: implement endpoint
     PATCH /drinks/<id>
         where <id> is the existing model id
         it should respond with a 404 error if <id> is not found
@@ -150,7 +150,7 @@ def retrieve_drinks_detail():
 
 @app.route(f'{BASE_URL}/drinks/<int:drink_id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
-def retrieve_drinks_detail(drink_id):
+def update_drink_by_id(drink_id):
     # Verify valid drink id
     drink = db.session.query(Drink).get_or_404(drink_id)
 
@@ -197,6 +197,13 @@ def retrieve_drinks_detail(drink_id):
         where drinks is the list of drinks or appropriate
         status code indicating reason for failure
 '''
+
+
+@app.route(f'{BASE_URL}/drinks/<int:drink_id>', methods=['DELETE'])
+@requires_auth('delete:drinks')
+def delete_drink_by_id(drink_id):
+    # Verify valid drink id
+    drink = db.session.query(Drink).get_or_404(drink_id)
 
 
 # -----------------------------Error Handling----------------------------- #
