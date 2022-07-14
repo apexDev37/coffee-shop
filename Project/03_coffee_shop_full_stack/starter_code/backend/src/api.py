@@ -82,7 +82,7 @@ def retrieve_drinks_detail():
     except BaseException:
         print(sys.exc_info())
         abort(500)
-    
+
     # Handle response
     return jsonify({
         'success': True,
@@ -92,7 +92,7 @@ def retrieve_drinks_detail():
 
 
 '''
-@TODO implement endpoint
+@DONE: implement endpoint
     POST /drinks
         it should create a new row in the drinks table
         it should require the 'post:drinks' permission
@@ -116,7 +116,7 @@ def retrieve_drinks_detail():
 
     try:
         # Create and persist new drink
-        new_drink = Drink(title=drink_title, recipe=drink_recipe) 
+        new_drink = Drink(title=drink_title, recipe=drink_recipe)
         new_drink.insert()
 
         # Retrieve all drinks from DB
@@ -125,7 +125,7 @@ def retrieve_drinks_detail():
     except BaseException:
         print(sys.exc_info())
         abort(500)
-    
+
     # Handle response
     return jsonify({
         'success': True,
@@ -146,6 +146,44 @@ def retrieve_drinks_detail():
         where drinks is the list of drinks or appropriate
         status code indicating reason for failure
 '''
+
+
+@app.route(f'{BASE_URL}/drinks/<int:drink_id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
+def retrieve_drinks_detail(drink_id):
+    # Verify valid drink id
+    drink = db.session.query(Drink).get_or_404(drink_id)
+
+    # Handle patch data
+    body = request.get_json()
+    title_update = body.get('title', None)
+    recipe_update = body.get('recipe', None)
+
+    if not title_update and not recipe_update:
+        abort(422)
+
+    try:
+        # Update and persist existing drink
+        if title_update:
+            drink.title = title_update
+        if recipe_update:
+            drink.recipe = recipe_update
+
+        drink.update()
+
+        # Retrieve all drinks from DB
+        drinks = db.session.query(Drink).all()
+        formatted_drinks = [drink.long() for drink in drinks]
+    except BaseException:
+        print(sys.exc_info())
+        abort(500)
+
+    # Handle response
+    return jsonify({
+        'success': True,
+        'status_code': 200,
+        'drinks': formatted_drinks
+    })
 
 
 '''
