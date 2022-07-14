@@ -4,12 +4,16 @@ from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
+# -------------------------AUTH0 Credentials------------------------- #
 
-AUTH0_DOMAIN = 'udacity-fsnd.auth0.com'
+AUTH0_DOMAIN = 'euon-fsnd.us.auth0.com'
+AUTH0_CLIENT_ID = 't8vEyvgObDTMEfI9AqMq2rTnpgGOH2Ia'
+API_AUDIENCE = 'http://127.0.0.1:5000/api/v1/'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = 'dev'
 
-# AuthError Exception
+
+# -----------------------------AuthError----------------------------- #
+
 '''
 AuthError Exception
 A standardized way to communicate auth failure modes
@@ -21,8 +25,8 @@ class AuthError(Exception):
         self.error = error
         self.status_code = status_code
 
+# ----------------------------Auth Header---------------------------- #
 
-# Auth Header
 
 '''
 @DONE: implement get_token_auth_header() method
@@ -43,8 +47,8 @@ def get_token_auth_header():
     handle_invalid_auth_header(auth_header_parts)
 
     # Handle response
-    jwt_token = auth_header_parts[1]
-    return jwt_token
+    token = auth_header_parts[1]
+    return token
 
 
 def get_auth_header_or_401():
@@ -100,7 +104,7 @@ def check_permissions(permission, payload):
 
 
 '''
-@TODO implement verify_decode_jwt(token) method
+@DONE: implement verify_decode_jwt(token) method
     @INPUTS
         token: a json web token (string)
 
@@ -116,7 +120,71 @@ def check_permissions(permission, payload):
 
 
 def verify_decode_jwt(token):
-    raise Exception('Not Implemented')
+    # Retrieve public key from Auth0
+    jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
+    jwks = json.loads(jsonurl.read())
+    unverified_jwt_header = jwt.get_unverified_header(token)
+
+    rsa_key = get_RSA_key_or_401(jwks, unverified_jwt_header)
+
+    # Verify jwt and return jwt payload
+    if rsa_key:
+        jwt_payload = validate_jwt(rsa_key, token)
+        return jwt_payload
+
+    # Raise AuthError for missing key
+    error_desc = 'Unable to find the appropriate key'
+    raise_invalid_auth_header(error_desc)
+
+
+def get_RSA_key_or_401(jwks, unverified_jwt_header):
+    """
+    Auth0 Boiler plate code to choose and format RSA key.
+    """
+
+    # Raise AuthError if kid is missing
+    if 'kid' not in unverified_jwt_header:
+        error_desc = 'Authorization header malformed'
+        raise_invalid_auth_header(error_desc)
+
+    # Choose and return RSA key
+    for key in jwks['keys']:
+        if key['kid'] == unverified_jwt_header['kid']:
+            return {
+                'kty': key['kty'],
+                'kid': key['kid'],
+                'use': key['use'],
+                'n': key['n'],
+                'e': key['e']
+            }
+
+
+def validate_jwt(rsa_key, token):
+    try:
+        payload = jwt.decode(
+            token=token,
+            key=rsa_key,
+            algorithms=ALGORITHMS,
+            audience=API_AUDIENCE,
+            issuer=f'https://{AUTH0_DOMAIN}/'
+        )
+
+        return payload
+
+    # Handle common exceptions and raise AuthError
+    except jwt.ExpiredSignatureError:
+        raise AuthError({
+            'code': 'token_expired',
+            'description': 'Token expired.'}, 401)
+    except jwt.JWTClaimsError:
+        raise AuthError({
+            'code': 'invalid_claims',
+            'description': 'Incorrect claims.' +
+            'Please, check the audience and issuer.'}, 401)
+    except Exception:
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': 'Unable to parse authentication token.'}, 400)
 
 
 '''
