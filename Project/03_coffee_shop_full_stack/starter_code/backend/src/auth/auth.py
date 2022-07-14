@@ -87,7 +87,7 @@ def raise_invalid_auth_header(error_desc):
 
 
 '''
-@TODO implement check_permissions(permission, payload) method
+@DONE: implement check_permissions(permission, payload) method
     @INPUTS
         permission: string permission (i.e. 'post:drink')
         payload: decoded jwt payload
@@ -100,7 +100,19 @@ def raise_invalid_auth_header(error_desc):
 
 
 def check_permissions(permission, payload):
-    raise Exception('Not Implemented')
+    # Handle missing permission claims in JWT payload
+    if 'permissions' not in payload:
+        raise AuthError({
+            'code': 'invalid_claims',
+            'description': 'Permission claims not in JWT'}, 400)
+
+    # Handle missing required permission
+    if permission not in payload['permissions']:
+        raise AuthError({
+            'code': 'unauthorized',
+            'description': 'Forbidden: Permission not found'}, 403)
+
+    return True
 
 
 '''
