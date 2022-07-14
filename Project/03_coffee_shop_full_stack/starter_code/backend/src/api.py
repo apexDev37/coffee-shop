@@ -1,6 +1,7 @@
 from crypt import methods
 import os
 import sys
+from turtle import title
 from flask import Flask, request, jsonify, abort
 from sqlalchemy import exc
 import json
@@ -100,6 +101,37 @@ def retrieve_drinks_detail():
         where drinks is the list of drinks or appropriate
         status code indicating reason for failure
 '''
+
+
+@app.route(f'{BASE_URL}/drinks', methods=['POST'])
+@requires_auth('post:drinks')
+def retrieve_drinks_detail():
+    # Handle post data
+    body = request.get_json()
+    drink_title = body.get('title', None)
+    drink_recipe = body.get('recipe', None)
+
+    if not drink_title and not drink_recipe:
+        abort(422)
+
+    try:
+        # Create and persist new drink
+        new_drink = Drink(title=drink_title, recipe=drink_recipe) 
+        new_drink.insert()
+
+        # Retrieve all drinks from DB
+        drinks = db.session.query(Drink).all()
+        formatted_drinks = [drink.long() for drink in drinks]
+    except BaseException:
+        print(sys.exc_info())
+        abort(500)
+    
+    # Handle response
+    return jsonify({
+        'success': True,
+        'status_code': 200,
+        'drinks': formatted_drinks
+    })
 
 
 '''
