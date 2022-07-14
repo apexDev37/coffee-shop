@@ -187,7 +187,7 @@ def update_drink_by_id(drink_id):
 
 
 '''
-@TODO implement endpoint
+@DONE: implement endpoint
     DELETE /drinks/<id>
         where <id> is the existing model id
         it should respond with a 404 error if <id> is not found
@@ -204,6 +204,23 @@ def update_drink_by_id(drink_id):
 def delete_drink_by_id(drink_id):
     # Verify valid drink id
     drink = db.session.query(Drink).get_or_404(drink_id)
+
+    try:
+        drink.delete()
+
+        # Retrieve all drinks from DB
+        drinks = db.session.query(Drink).all()
+        formatted_drinks = [drink.long() for drink in drinks]
+    except BaseException:
+        print(sys.exc_info())
+        abort(500)
+
+    # Handle response
+    return jsonify({
+        'success': True,
+        'status_code': 200,
+        'drinks': formatted_drinks
+    })
 
 
 # -----------------------------Error Handling----------------------------- #
