@@ -4,11 +4,20 @@ from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
+from os import environ as env
+from dotenv import find_dotenv, load_dotenv
+
+
 # -------------------------AUTH0 Credentials------------------------- #
 
-AUTH0_DOMAIN = 'euon-fsnd.us.auth0.com'
-AUTH0_CLIENT_ID = 't8vEyvgObDTMEfI9AqMq2rTnpgGOH2Ia'
-API_AUDIENCE = 'http://127.0.0.1:5000/api/v1/'
+# Load environment variables
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+    load_dotenv()
+
+AUTH0_DOMAIN = env.get('AUTH0_DOMAIN')
+AUTH0_CLIENT_ID = env.get('AUTH0_CLIENT_ID')
+API_AUDIENCE = env.get('API_AUDIENCE')
 ALGORITHMS = ['RS256']
 
 
