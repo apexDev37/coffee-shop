@@ -1,7 +1,6 @@
 from crypt import methods
 import os
 import sys
-from turtle import title
 from flask import Flask, request, jsonify, abort
 from sqlalchemy import exc
 import json
@@ -18,6 +17,16 @@ from .database.models import (
 app = Flask(__name__)
 setup_db(app)
 CORS(app)
+# cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# @app.after_request
+# def after_request(response):
+#     response.headers.add('Access-Control-Allow-Headers',
+#                             'Content-type, Authorization, true')
+#     response.headers.add('Access-Control-Allow-Methods',
+#                             'GET, POST, PATCH, DELETE, OPTIONS')
+#     response.headers.add('Access-Control-Allow-Credentials', 'true')
+#     return response
 
 '''
 @DONE: uncomment the following line to initialize the datbase
@@ -30,7 +39,7 @@ CORS(app)
 
 # -----------------------------API Endpoints----------------------------- #
 
-BASE_URL = '/api/v1'
+API_VERSION = '/api/v1'
 
 '''
 @DONE: implement endpoint
@@ -43,7 +52,7 @@ BASE_URL = '/api/v1'
 '''
 
 
-@app.route(f'{BASE_URL}/drinks', methods=['GET'])
+@app.route(f'{API_VERSION}/drinks', methods=['GET'])
 def retrieve_all_drinks():
     # Handle data
     try:
@@ -72,7 +81,7 @@ def retrieve_all_drinks():
 '''
 
 
-@app.route(f'{BASE_URL}/drinks-detail', methods=['GET'])
+@app.route(f'{API_VERSION}/drinks-detail', methods=['GET'])
 @requires_auth('get:drinks-detail')
 def retrieve_drinks_detail():
     # Handle data
@@ -103,26 +112,29 @@ def retrieve_drinks_detail():
 '''
 
 
-@app.route(f'{BASE_URL}/drinks', methods=['POST'])
+@app.route(f'{API_VERSION}/drinks', methods=['POST'])
 @requires_auth('post:drinks')
 def add_new_drink():
     # Handle post data
     body = request.get_json()
+    print(body)
     drink_title = body.get('title', None)
     drink_recipe = body.get('recipe', None)
+
 
     if not drink_title and not drink_recipe:
         abort(422)
 
     try:
         # Create and persist new drink
-        new_drink = Drink(title=drink_title, recipe=drink_recipe)
+        new_drink = Drink(title=drink_title, recipe=json.dumps(drink_recipe))
         new_drink.insert()
 
         # Retrieve all drinks from DB
         drinks = db.session.query(Drink).all()
         formatted_drinks = [drink.long() for drink in drinks]
     except BaseException:
+        db.session.rollback()
         print(sys.exc_info())
         abort(500)
 
@@ -148,7 +160,7 @@ def add_new_drink():
 '''
 
 
-@app.route(f'{BASE_URL}/drinks/<int:drink_id>', methods=['PATCH'])
+@app.route(f'{API_VERSION}/drinks/<int:drink_id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
 def update_drink_by_id(drink_id):
     # Verify valid drink id
@@ -167,7 +179,7 @@ def update_drink_by_id(drink_id):
         if title_update:
             drink.title = title_update
         if recipe_update:
-            drink.recipe = recipe_update
+            drink.recipe = json.dumps(recipe_update)
 
         drink.update()
 
@@ -175,6 +187,7 @@ def update_drink_by_id(drink_id):
         drinks = db.session.query(Drink).all()
         formatted_drinks = [drink.long() for drink in drinks]
     except BaseException:
+        db.session.rollback()
         print(sys.exc_info())
         abort(500)
 
@@ -199,7 +212,7 @@ def update_drink_by_id(drink_id):
 '''
 
 
-@app.route(f'{BASE_URL}/drinks/<int:drink_id>', methods=['DELETE'])
+@app.route(f'{API_VERSION}/drinks/<int:drink_id>', methods=['DELETE'])
 @requires_auth('delete:drinks')
 def delete_drink_by_id(drink_id):
     # Verify valid drink id
@@ -212,6 +225,7 @@ def delete_drink_by_id(drink_id):
         drinks = db.session.query(Drink).all()
         formatted_drinks = [drink.long() for drink in drinks]
     except BaseException:
+        db.session.rollback()
         print(sys.exc_info())
         abort(500)
 
