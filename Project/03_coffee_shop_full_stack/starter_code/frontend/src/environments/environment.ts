@@ -2,7 +2,6 @@
  * ensure all variables on this page match your project
  */
 
-// Load environment variables
 // Enter Auth0 developer credentials in auth0 object
 
 
