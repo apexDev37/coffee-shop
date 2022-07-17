@@ -121,7 +121,6 @@ def add_new_drink():
     drink_title = body.get('title', None)
     drink_recipe = body.get('recipe', None)
 
-
     if not drink_title and not drink_recipe:
         abort(422)
 
