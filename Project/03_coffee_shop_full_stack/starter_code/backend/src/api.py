@@ -321,7 +321,7 @@ def auth_error(error):
 def get_401_error_response(error):
     return jsonify({
         'success': False,
-        'error': 401,
+        'error': error.error,
         'message': 'unauthorized request',
     }), 401
 
@@ -329,6 +329,6 @@ def get_401_error_response(error):
 def get_403_error_response(error):
     return jsonify({
         'success': False,
-        'error': 403,
+        'error': error.error,
         'message': 'forbidden request',
     }), 403
